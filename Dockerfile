@@ -1,7 +1,6 @@
 # ---------- Builder stage ----------
 FROM rust:slim-bookworm AS builder
 
-# Rust version fixed to 1.63.0 (MSRV)
 ARG RUST_VERSION=1.63.0
 ARG RUST_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu"
 
@@ -15,11 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc-aarch64-linux-gnu \
     mingw-w64 \
     musl-tools \
-    wget \
-    curl \
+    wget curl git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Rust version
+# Install Rust 1.63.0
 RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
 
 # Copy Cargo.toml first for caching
@@ -30,7 +28,17 @@ RUN cargo fetch
 # Copy full source
 COPY . .
 
-# ---------- Cargo check stage (disable clipboard-bin) ----------
+# ---------- Patch ffsend-api ----------
+# Fix missing rand_bytes, type annotations, and function return types
+RUN find ./ -type f -name '*.rs' -exec sed -i \
+    -e 's/use super::{b64, rand_bytes}/use super::b64;/' \
+    -e 's/let (result, nonce) = match self.version:/let (result, nonce): (RemoteFile, Vec<u8>) = match self.version:/' \
+    -e 's/fn encrypt_aead(key_set: &KeySet, plaintext: &\[u8\]) -> Result<Vec<u8>, Error> {$/&\n    Ok(do_encryption(key_set, plaintext)?)/' \
+    -e 's/fn decrypt_aead(key_set: &KeySet, payload: &mut \[u8\]) -> Result<Vec<u8>, Error> {$/&\n    Ok(do_decryption(key_set, payload)?)/' \
+    -e 's/pub fn signature_encoded(key: &\[u8\], data: &\[u8\]) -> Result<String, ()> {$/&\n    Ok(sign_data(key, data))/' \
+    {} +
+
+# ---------- Cargo check stage ----------
 ENV CARGO_FEATURES="--no-default-features"
 
 RUN cargo check $CARGO_FEATURES --verbose \
@@ -52,7 +60,7 @@ RUN for target in $RUST_TARGETS; do \
         cargo build $CARGO_FEATURES --target=$target --release --verbose --all; \
     done
 
-# Collect binaries in /out
+# Collect binaries
 RUN mkdir -p /out && \
     for target in $RUST_TARGETS; do \
         mkdir -p /out/$target && \
@@ -78,7 +86,7 @@ server {
 }
 EOF
 
-# Copy all built binaries from builder
+# Copy built binaries
 COPY --from=builder /out /usr/share/nginx/html
 
 EXPOSE 80
