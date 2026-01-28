@@ -3,7 +3,7 @@ FROM rust:slim-bookworm AS builder
 
 # Arguments for Rust version and targets
 ARG RUST_VERSION=stable
-ARG RUST_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu"
+ARG RUST_TARGETS="aarch64-unknown-linux-musl x86_64-unknown-linux-musl"
 
 WORKDIR /app
 
@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Rust version
 RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
+
+RUN rustc --version && cargo --version
 
 # Copy source code
 COPY . .
