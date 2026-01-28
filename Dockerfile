@@ -25,6 +25,18 @@ RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
 # Copy source code
 COPY . .
 
+RUN cargo check --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring --verbose \
+ && cargo check --no-default-features --features send2,crypto-openssl --verbose \
+ && cargo check --no-default-features --features send3,crypto-openssl --verbose \
+ && cargo check --no-default-features --features send2,send3,crypto-openssl --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring,archive --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring,history --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring,qrcode --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring,urlshorten --verbose \
+ && cargo check --no-default-features --features send3,crypto-ring,infer-command --verbose \
+ && cargo check --features no-color --verbose
+
 # Build binaries for all targets
 RUN for target in $RUST_TARGETS; do \
         echo "Adding target $target"; \
