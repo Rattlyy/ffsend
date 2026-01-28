@@ -34,8 +34,8 @@ COPY . .
 # RUN export OPENSSL_LIB_DIR=/usr/local/lib64
 # RUN export OPENSSL_INCLUDE_DIR=/usr/local/include
 
-RUN rustup target add $RUST_TARGET
-RUN cargo build --target=$RUST_TARGET --release --verbose
+RUN rustup target add $RUST_TARGETS
+RUN cargo build --target=$RUST_TARGETS --release --verbose
 
 
 # ---------- Build binaries ----------
