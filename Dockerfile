@@ -6,7 +6,7 @@ FROM rust:1.75 AS builder
 # linux x86_64: x86_64-unknown-linux-gnu
 # linux arm64:  aarch64-unknown-linux-gnu
 # windows:      x86_64-pc-windows-gnu
-ARG RUST_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu"
+ARG RUST_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu"
 
 WORKDIR /app
 
