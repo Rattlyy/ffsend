@@ -23,4 +23,4 @@ jobs:
           push: false
           tags: rust-binaries-nginx:latest
           build-args: |
-            RUST_TARGETS=x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu
+            RUST_TARGETS=x86_64-unknown-linux-gnu
