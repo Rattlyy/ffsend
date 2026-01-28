@@ -41,21 +41,22 @@ RUN mkdir -p /out && \
 # ---------- Nginx stage ----------
 FROM nginx:alpine
 
-# Remove default config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Simple file hosting config
 COPY <<EOF /etc/nginx/conf.d/files.conf
 server {
     listen 80;
+    server_name _;
+
     location / {
         root /usr/share/nginx/html;
         autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
     }
 }
 EOF
 
-# Copy built binaries
 COPY --from=builder /out /usr/share/nginx/html
 
 EXPOSE 80
