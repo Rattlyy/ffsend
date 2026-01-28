@@ -23,16 +23,16 @@ RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
 # Copy full source
 COPY . .
 
-RUN apt-get install -y build-essential wget musl-tools
-RUN wget https://github.com/openssl/openssl/releases/download/openssl-3.0.15/openssl-3.0.15.tar.gz
-RUN tar xzvf openssl-3.0.15.tar.gz
-WORKDIR /app/openssl-3.0.15
-RUN ./config no-async -fPIC --openssldir=/usr/local/ssl --prefix=/usr/local
-RUN make && make install 
-WORKDIR /app
-RUN export OPENSSL_STATIC=1
-RUN export OPENSSL_LIB_DIR=/usr/local/lib64
-RUN export OPENSSL_INCLUDE_DIR=/usr/local/include
+# RUN apt-get install -y build-essential wget musl-tools
+# RUN wget https://github.com/openssl/openssl/releases/download/openssl-3.0.15/openssl-3.0.15.tar.gz
+# RUN tar xzvf openssl-3.0.15.tar.gz
+# WORKDIR /app/openssl-3.0.15
+# RUN ./config no-async -fPIC --openssldir=/usr/local/ssl --prefix=/usr/local
+# RUN make && make install 
+# WORKDIR /app
+# RUN export OPENSSL_STATIC=1
+# RUN export OPENSSL_LIB_DIR=/usr/local/lib64
+# RUN export OPENSSL_INCLUDE_DIR=/usr/local/include
 
 RUN rustup target add $RUST_TARGET
 RUN cargo build --target=$RUST_TARGET --release --verbose
