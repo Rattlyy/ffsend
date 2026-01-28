@@ -1,9 +1,9 @@
 # ---------- Builder stage ----------
 FROM rust:slim-bookworm AS builder
 
-# Arguments for Rust version and targets
-ARG RUST_VERSION=stable
-ARG RUST_TARGETS="aarch64-unknown-linux-musl x86_64-unknown-linux-musl"
+# Rust version fixed to 1.63.0 (MSRV)
+ARG RUST_VERSION=1.63.0
+ARG RUST_TARGETS="x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu x86_64-pc-windows-gnu"
 
 WORKDIR /app
 
@@ -22,15 +22,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Rust version
 RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
 
-RUN rustc --version && cargo --version
+# Copy Cargo.toml first for caching
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo "fn main(){}" > src/main.rs
+RUN cargo fetch
 
-# Copy source code
+# Copy full source
 COPY . .
 
-# Disable clipboard-bin in all builds
+# ---------- Cargo check stage (disable clipboard-bin) ----------
 ENV CARGO_FEATURES="--no-default-features"
 
-# ---------- Cargo check stage ----------
 RUN cargo check $CARGO_FEATURES --verbose \
  && cargo check $CARGO_FEATURES --features send3,crypto-ring --verbose \
  && cargo check $CARGO_FEATURES --features send2,crypto-openssl --verbose \
@@ -43,8 +45,7 @@ RUN cargo check $CARGO_FEATURES --verbose \
  && cargo check $CARGO_FEATURES --features send3,crypto-ring,infer-command --verbose \
  && cargo check $CARGO_FEATURES --features no-color --verbose
 
-
-# Build binaries for all targets
+# ---------- Build binaries ----------
 RUN for target in $RUST_TARGETS; do \
         echo "Adding target $target"; \
         rustup target add $target; \
