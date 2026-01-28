@@ -25,23 +25,28 @@ RUN rustup install $RUST_VERSION && rustup default $RUST_VERSION
 # Copy source code
 COPY . .
 
-RUN cargo check --verbose \
- && cargo check --no-default-features --features send3,crypto-ring --verbose \
- && cargo check --no-default-features --features send2,crypto-openssl --verbose \
- && cargo check --no-default-features --features send3,crypto-openssl --verbose \
- && cargo check --no-default-features --features send2,send3,crypto-openssl --verbose \
- && cargo check --no-default-features --features send3,crypto-ring,archive --verbose \
- && cargo check --no-default-features --features send3,crypto-ring,history --verbose \
- && cargo check --no-default-features --features send3,crypto-ring,qrcode --verbose \
- && cargo check --no-default-features --features send3,crypto-ring,urlshorten --verbose \
- && cargo check --no-default-features --features send3,crypto-ring,infer-command --verbose \
- && cargo check --features no-color --verbose
+# Disable clipboard-bin in all builds
+ENV CARGO_FEATURES="--no-default-features"
+
+# ---------- Cargo check stage ----------
+RUN cargo check $CARGO_FEATURES --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring --verbose \
+ && cargo check $CARGO_FEATURES --features send2,crypto-openssl --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-openssl --verbose \
+ && cargo check $CARGO_FEATURES --features send2,send3,crypto-openssl --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring,archive --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring,history --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring,qrcode --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring,urlshorten --verbose \
+ && cargo check $CARGO_FEATURES --features send3,crypto-ring,infer-command --verbose \
+ && cargo check $CARGO_FEATURES --features no-color --verbose
+
 
 # Build binaries for all targets
 RUN for target in $RUST_TARGETS; do \
         echo "Adding target $target"; \
         rustup target add $target; \
-        cargo build --target=$target --release --verbose --all; \
+        cargo build $CARGO_FEATURES --target=$target --release --verbose --all; \
     done
 
 # Collect binaries in /out
