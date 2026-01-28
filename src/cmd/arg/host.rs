@@ -19,7 +19,7 @@ impl CmdArg for ArgHost {
             .long("host")
             .short("h")
             .value_name("URL")
-            .default_value("https://send.vis.ee/")
+            .default_value("https://send.gmmz.dev/")
             .env("FFSEND_HOST")
             .hide_env_values(true)
             .help("The remote host to upload to")
