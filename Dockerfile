@@ -1,54 +1,63 @@
 # ---------- Builder stage ----------
-FROM rust:slim-bookworm AS builder
-
-ARG RUST_VERSION=stable
-ARG RUST_TARGETS="x86_64-unknown-linux-musl"
+FROM rust:1.63.0-slim-bookworm AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install cross toolchains (NO OpenSSL)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    pkg-config \
-    libssl-dev \
     gcc-aarch64-linux-gnu \
     mingw-w64 \
     musl-tools \
-    wget curl git \
-    gcc-aarch64-linux-gnu \
-    libc6-dev-arm64-cross \
-    pkg-config \
+    ca-certificates \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Rust 1.63.0
-RUN rustup install stable && rustup default stable
+# Add Rust targets
+RUN rustup target add \
+    x86_64-unknown-linux-gnu \
+    aarch64-unknown-linux-gnu \
+    x86_64-pc-windows-gnu
 
-# Copy full source
+# Copy source
 COPY . .
 
-RUN rustup target add x86_64-unknown-linux-gnu
-RUN rustup target add x86_64-pc-windows-gnu
-RUN rustup target add aarch64-unknown-linux-gnu
+# ---------- Build step 1: Linux x86_64 ----------
+RUN cargo build \
+    --target=x86_64-unknown-linux-gnu \
+    --no-default-features \
+    --features send3,crypto-ring \
+    --release
 
-RUN cargo build --target=x86_64-unknown-linux-gnu --release --verbose
-RUN cargo build --target=aarch64-unknown-linux-gnu --release --verbose
-RUN cargo build --target=x86_64-pc-windows-gnu --release --verbose
+# ---------- Build step 2: Linux ARM64 ----------
+RUN cargo build \
+    --target=aarch64-unknown-linux-gnu \
+    --no-default-features \
+    --features send3,crypto-ring \
+    --release
 
-RUN mkdir -p /out \
-    cp target/x86_64-unknown-linux-gnu/release/* /out/ || true && \
-    cp target/aarch64-unknown-linux-gnu/release/* /out/ || true && \
-    cp target/x86_64-pc-windows-gnu/release/* /out/ || true
+# ---------- Build step 3: Windows ----------
+RUN cargo build \
+    --target=x86_64-pc-windows-gnu \
+    --no-default-features \
+    --features send3,crypto-ring \
+    --release
+
+# Collect artifacts
+RUN mkdir -p /out && \
+    cp target/x86_64-unknown-linux-gnu/release/* /out/ && \
+    cp target/aarch64-unknown-linux-gnu/release/* /out/ && \
+    cp target/x86_64-pc-windows-gnu/release/*.exe /out/
 
 # ---------- Nginx stage ----------
 FROM nginx:alpine
 
-# Enable directory listing
 RUN rm /etc/nginx/conf.d/default.conf
+
 COPY <<EOF /etc/nginx/conf.d/files.conf
 server {
     listen 80;
     server_name _;
-
     location / {
         root /usr/share/nginx/html;
         autoindex on;
@@ -58,7 +67,6 @@ server {
 }
 EOF
 
-# Copy built binaries
 COPY --from=builder /out /usr/share/nginx/html
 
 EXPOSE 80
