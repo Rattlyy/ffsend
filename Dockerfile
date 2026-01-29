@@ -18,8 +18,9 @@ RUN cargo build \
     --no-default-features \
     --features send3,crypto-ring
 
+# Copy the latest built binary automatically
 RUN mkdir -p /out/amd64 && \
-    cp target/release/* /out/amd64/
+    find target/release -maxdepth 1 -type f -executable ! -name '*.d' -exec cp {} /out/amd64/ \;
 
 
 # =========================
@@ -43,11 +44,11 @@ RUN cargo build \
     --features send3,crypto-ring
 
 RUN mkdir -p /out/arm64 && \
-    cp target/release/* /out/arm64/
+    find target/release -maxdepth 1 -type f -executable ! -name '*.d' -exec cp {} /out/arm64/ \;
 
 
 # =========================
-# Final NGINX image
+# NGINX final stage
 # =========================
 FROM nginx:alpine
 
@@ -66,7 +67,7 @@ server {
 }
 EOF
 
-COPY --from=builder-amd64 /out /usr/share/nginx/html/amd64
-COPY --from=builder-arm64 /out /usr/share/nginx/html/arm64
+COPY --from=builder-amd64 /out/amd64 /usr/share/nginx/html/amd64
+COPY --from=builder-arm64 /out/arm64 /usr/share/nginx/html/arm64
 
 EXPOSE 80
