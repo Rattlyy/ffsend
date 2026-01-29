@@ -52,6 +52,14 @@ RUN mkdir -p /out/arm64 && \
 # =========================
 FROM nginx:alpine
 
+LABEL org.opencontainers.image.title="ffsend" \
+      org.opencontainers.image.description="Multi-arch NGINX image serving Rust ffsend binaries" \
+      org.opencontainers.image.url="https://github.com/Rattlyy/ffsend" \
+      org.opencontainers.image.source="https://github.com/Rattlyy/ffsend" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="Rattlyy <me@gmmz.dev>"
+
 RUN rm /etc/nginx/conf.d/default.conf
 
 COPY <<EOF /etc/nginx/conf.d/files.conf

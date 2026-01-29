@@ -45,9 +45,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ffsend:latest
-            ghcr.io/${{ github.repository_owner }}/ffsend:${{ github.ref_name }}
+            ghcr.io/rattlyy/ffsend:latest
+            ghcr.io/rattlyy/ffsend:${{ github.ref_name }}
 
       # Optional: list pushed image platforms
       - name: Inspect pushed image
-        run: docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/ffsend-nginx:latest
+        run: docker buildx imagetools inspect ghcr.io/rattlyy/ffsend-nginx:latest
