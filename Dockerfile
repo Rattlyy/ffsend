@@ -1,7 +1,7 @@
 # =========================
 # x86_64 builder
 # =========================
-FROM --platform=linux/amd64 rust:1.63.0-slim-bookworm AS builder-amd64
+FROM --platform=linux/amd64 rust AS builder-amd64
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ RUN mkdir -p /out/amd64 && \
 # =========================
 # ARM64 builder
 # =========================
-FROM --platform=linux/arm64 rust:1.63.0-slim-bookworm AS builder-arm64
+FROM --platform=linux/arm64 rust AS builder-arm64
 
 WORKDIR /app
 
