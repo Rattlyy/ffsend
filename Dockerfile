@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     mingw-w64 \
     musl-tools \
     wget curl git \
+    gcc-aarch64-linux-gnu \
+    libc6-dev-arm64-cross \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust 1.63.0
