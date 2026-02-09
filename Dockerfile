@@ -78,4 +78,21 @@ EOF
 COPY --from=builder-amd64 /out/amd64 /usr/share/nginx/html/amd64
 COPY --from=builder-arm64 /out/arm64 /usr/share/nginx/html/arm64
 
+WORKDIR /usr/share/nginx/html/
+RUN rm index.html
+RUN cat << 'EOF' > sh
+ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')"
+wget https://ffsend.gmmz.dev/$ARCH/ffsend
+chmod +x ./ffsend
+echo "done"
+EOF
+RUN cat << 'EOF' > index.html
+<html>
+<body>
+<code>curl https://ffsend.gmmz.dev/sh | sh</code>
+</body>
+</html>
+EOF
+
+
 EXPOSE 80
