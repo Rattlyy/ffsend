@@ -50,4 +50,5 @@ jobs:
 
       # Optional: list pushed image platforms
       - name: Inspect pushed image
-        run: docker buildx imagetools inspect ghcr.io/rattlyy/ffsend-nginx:latest
+        run: docker buildx imagetools inspect ghcr.io/rattlyy/ffsend:latest
+
